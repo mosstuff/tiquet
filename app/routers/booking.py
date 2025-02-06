@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
-from app import crud, models, schemas, utillities
+from app import crud, schemas, utillities
 from app.config import reload_settings, update_settings
 from app.dependencies import get_db
 from datetime import datetime, timedelta
-
 router = APIRouter()
 global settings
 settings = reload_settings()
-
+global terminalState
+terminalState = {}
 
 @router.post("/booking/create_booking", response_model=schemas.Booking)
 def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)):
@@ -32,7 +32,7 @@ def read_bookings(db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No Bookings in Database")
     return db_booking
 
-@router.delete("/booking/delete_booking/{qr_code}")
+@router.get("/booking/delete_booking/{qr_code}")
 def delete_booking(qr_code: str, db: Session = Depends(get_db)):
     success = crud.remove_booking(db=db, qr_code=qr_code)
     if not success:
@@ -45,7 +45,9 @@ def checkin(qr_code: str, db: Session = Depends(get_db)):
     next_range = utillities.get_next_10_minute_range()
     db_entry = crud.get_booking(db=db, qr_code=qr_code)
     if not db_entry:
-        raise HTTPException(status_code=404, detail="Booking not found")
+        return {
+            "status": "Booking not found!",
+        }
     booked_slot = getattr(db_entry, "timeslot", None)
     if getattr(db_entry, "arrived", None) == True:
         return {
@@ -59,9 +61,12 @@ def checkin(qr_code: str, db: Session = Depends(get_db)):
             "activity": getattr(db_entry, "activity", None)
         }
     elif booked_slot < current_range:
-        crud.update_booking_status(db=db, qr_code=qr_code, new_status=True)
         return {
-            "status": "missed"
+            "status": "Missed!"
+        }
+    elif booked_slot > current_range:
+        return {
+            "status": "Too early!"
         }
 
 @router.get("/config")
@@ -112,3 +117,14 @@ def update_setting(config: schemas.ConfigUpdate, response: Response):
     except:
         response.status_code = status.HTTP_406_NOT_ACCEPTABLE
         return
+
+@router.get("/state/booking/{terminal}")
+def getTerminalBookingState(terminal: str):
+    state = terminalState[terminal]
+    return state
+
+@router.get("/state/booking/{terminal}/set/{state}")
+def getTerminalBookingState(terminal: str, state: str):
+    terminalState[terminal] = state
+    state = terminalState[terminal]
+    return state

@@ -5,7 +5,6 @@ def get_booking(db: Session, qr_code: str):
     return db.query(models.Booking).filter(models.Booking.qr_code == qr_code).first()
 
 def get_bookings(db: Session):
-    print(db.query(models.Booking).all())
     return db.query(models.Booking).all()
 
 def create_booking(db: Session, booking: schemas.BookingCreate):

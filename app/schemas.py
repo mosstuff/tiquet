@@ -2,7 +2,6 @@ from pydantic import BaseModel
 
 class BookingBase(BaseModel):
     name: str
-    ph_desc: str
     activity: str
     timeslot: str
     qr_code: str
@@ -21,7 +20,6 @@ class Booking(BookingBase):
 class BookingResponse(BaseModel):
     id: int
     name: str
-    ph_desc: str
     activity: str
     timeslot: str
     qr_code: str

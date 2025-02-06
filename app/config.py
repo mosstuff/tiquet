@@ -1,7 +1,7 @@
-from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
-from . import models, schemas
-import os
+from pydantic_settings import BaseSettings
+
+
 class Settings(BaseSettings):
     app_name: str
     setup_complete: bool
@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     event_begin: str
     event_end: str
     slot_interval: str
-    activities: list
+    activities: dict
 
     class Config:
         env_file = ".env"
