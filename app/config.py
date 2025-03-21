@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     setup_complete: bool
     database_url: str
     secret_key: str
+    timezone: str
     event_begin: str
     event_end: str
     slot_interval: str

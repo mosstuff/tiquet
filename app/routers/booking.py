@@ -41,19 +41,28 @@ def delete_booking(qr_code: str, db: Session = Depends(get_db)):
 
 @router.post("/booking/checkin/{qr_code}")
 def checkin(qr_code: str, db: Session = Depends(get_db)):
-    current_range = utillities.get_current_10_minute_range()
-    next_range = utillities.get_next_10_minute_range()
     db_entry = crud.get_booking(db=db, qr_code=qr_code)
     if not db_entry:
         return {
             "status": "Booking not found!",
         }
+
+    activity = getattr(db_entry, "activity", None)
+    try:
+        activity = settings.activities[activity]
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="activity not found")
+    offset = activity["offset"]
+
+    current_range = utillities.get_current_time_range_str(offset)
+    next_range = utillities.get_next_time_range_str(offset)
+
     booked_slot = getattr(db_entry, "timeslot", None)
     if getattr(db_entry, "arrived", None) == True:
         return {
             "status": "duplicate"
         }
-    if booked_slot == current_range or booked_slot == next_range:
+    elif booked_slot == current_range or booked_slot == next_range:
         crud.update_booking_status(db=db, qr_code=qr_code, new_status=True)
         return {
             "status": "success",
@@ -71,36 +80,32 @@ def checkin(qr_code: str, db: Session = Depends(get_db)):
 
 @router.get("/config")
 def get_config():
-    event_begin = settings.event_begin
-    event_end = settings.event_end
-    slot_interval = settings.slot_interval
 
-    # Parse the event times and interval
-    event_begin_time = datetime.strptime(event_begin, '%H:%M')
-    event_end_time = datetime.strptime(event_end, '%H:%M')
-    interval_parts = slot_interval.split(':')
-    interval_delta = timedelta(hours=int(interval_parts[0]), minutes=int(interval_parts[1]))
-
-    timeslots = []
-    current_time = event_begin_time
-
-    while current_time < event_end_time:
-        next_time = current_time + interval_delta
-        if next_time > event_end_time:
-            break
-        timeslot = f"{current_time.strftime('%H:%M')} - {next_time.strftime('%H:%M')}"
-        timeslots.append(timeslot)
-        current_time = next_time
-
-    system_time = datetime.now().strftime('%H:%M')
+    system_time = datetime.now(utillities.get_timezone()).strftime('%H:%M')
 
     return {
         "app_name": settings.app_name,
         "setup_complete": settings.setup_complete,
-        "all_timeslots": timeslots,
+        #"all_timeslots": timeslots,
         "activities": settings.activities,
         "system_time": system_time
     }
+
+@router.get("/config/get_timeframe_by_activity")
+def get_timeframe_by_activity(activity: str):
+    try:
+        activity = settings.activities[activity]
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="activity not found")
+    offset = activity["offset"]
+    timeslots = utillities.get_all_timeslots(offset)
+    return timeslots
+
+@router.get("/config/get_timeframe_by_offset")
+def get_timeframe_by_offset(offset: int):
+    timeslots = utillities.get_all_timeslots(offset)
+    return timeslots
+
 @router.get("/config/reload")
 def reloadConfig():
     global settings
