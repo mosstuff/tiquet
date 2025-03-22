@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     event_end: str
     slot_interval: str
     activities: dict
+    planes: dict
+    airports: dict
 
     class Config:
         env_file = ".env"

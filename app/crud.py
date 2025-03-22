@@ -1,8 +1,11 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 
-def get_booking(db: Session, qr_code: str):
+def get_booking_by_qr(db: Session, qr_code: str):
     return db.query(models.Booking).filter(models.Booking.qr_code == qr_code).first()
+
+def get_bookings_by_activity(db: Session, activity: str):
+    return db.query(models.Booking).filter(models.Booking.activity == activity).all()
 
 def get_bookings(db: Session):
     return db.query(models.Booking).all()
