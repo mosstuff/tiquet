@@ -185,3 +185,51 @@ def get_current_and_next_routeinfo_by_activity(activity: str, db: Session = Depe
             "name": name_next
         }
     }
+
+@router.get("/routemanagement/getstr")
+def get_current_and_next_routeinfo_by_activity_str(activity: str, db: Session = Depends(get_db)):
+    current_slot = utillities.get_current_time_range_str()
+    next_slot = utillities.get_next_time_range_str()
+
+    db_entry = crud.get_bookings_by_activity(db=db, activity=activity)
+
+    if not db_entry:
+        return {
+            "status": "No entries!",
+        }
+
+    entry_current = next((entry for entry in db_entry if entry.timeslot == current_slot), None)
+    entry_next = next((entry for entry in db_entry if entry.timeslot == next_slot), None)
+
+    if entry_current:
+        id_current = entry_current.subactivity
+        name_current = entry_current.name
+    else:
+        id_current = "0000"
+        name_current = "N/A"
+    if entry_next:
+        id_next = entry_next.subactivity
+        name_next = entry_next.name
+    else:
+        id_next = "0000"
+        name_next = "N/A"
+
+    current_ap, current_pl = id_current[:2], id_current[2:]
+    current_ap_str = settings.airports.get(current_ap, {}).get("name", "N/A")
+    current_pl_str = settings.planes.get(current_pl, {}).get("name", "N/A")
+    next_ap, next_pl = id_next[:2], id_next[2:]
+    next_ap_str = settings.airports.get(next_ap, {}).get("name", "N/A")
+    next_pl_str = settings.planes.get(next_pl, {}).get("name", "N/A")
+
+    return {
+        "current": {
+            "airport": current_ap_str,
+            "plane": current_pl_str,
+            "name": name_current
+        },
+        "next": {
+            "airport": next_ap_str,
+            "plane": next_pl_str,
+            "name": name_next
+        }
+    }
