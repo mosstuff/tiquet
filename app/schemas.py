@@ -15,7 +15,7 @@ class Booking(BookingBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class BookingResponse(BaseModel):
     id: int
@@ -27,7 +27,7 @@ class BookingResponse(BaseModel):
     subactivity: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ConfigUpdate(BaseModel):
     key: str
