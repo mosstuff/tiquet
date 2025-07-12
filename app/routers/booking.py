@@ -33,7 +33,7 @@ def read_bookings(db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No Bookings in Database")
     return db_booking
 
-@router.get("/booking/delete_booking/{qr_code}")
+@router.post("/booking/delete_booking/{qr_code}")
 def delete_booking(qr_code: str, db: Session = Depends(get_db)):
     success = crud.remove_booking(db=db, qr_code=qr_code)
     if not success:
