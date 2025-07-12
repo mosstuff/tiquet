@@ -144,8 +144,15 @@ def getTerminalBookingState(terminal: str, state: str):
 
 @router.get("/routemanagement/get")
 def get_current_and_next_routeinfo_by_activity(activity: str, db: Session = Depends(get_db)):
-    current_slot = utillities.get_current_time_range_str()
-    next_slot = utillities.get_next_time_range_str()
+
+    try:
+        activitydir = settings.activities[activity]
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="activity not found")
+    offset = activitydir["offset"]
+
+    current_slot = utillities.get_current_time_range_str(offset)
+    next_slot = utillities.get_next_time_range_str(offset)
 
     db_entry = crud.get_bookings_by_activity(db=db, activity=activity)
 
@@ -188,8 +195,14 @@ def get_current_and_next_routeinfo_by_activity(activity: str, db: Session = Depe
 
 @router.get("/routemanagement/getstr")
 def get_current_and_next_routeinfo_by_activity_str(activity: str, db: Session = Depends(get_db)):
-    current_slot = utillities.get_current_time_range_str()
-    next_slot = utillities.get_next_time_range_str()
+    try:
+        activitydir = settings.activities[activity]
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="activity not found")
+    offset = activitydir["offset"]
+
+    current_slot = utillities.get_current_time_range_str(offset)
+    next_slot = utillities.get_next_time_range_str(offset)
 
     db_entry = crud.get_bookings_by_activity(db=db, activity=activity)
 
