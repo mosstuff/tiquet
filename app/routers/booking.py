@@ -14,7 +14,7 @@ global terminalState
 terminalState = {}
 
 @router.post("/booking/create_booking", response_model=schemas.Booking)
-def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)):
+def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db), api_key: APIKey = Depends(app.auth.get_api_key)):
     db_booking = crud.get_booking_by_qr(db=db, qr_code=booking.qr_code)
     if db_booking is None:
         return crud.create_booking(db=db, booking=booking)
@@ -29,21 +29,21 @@ def read_booking(qr_code: str, db: Session = Depends(get_db)):
     return db_booking
 
 @router.get("/booking/get_booking", response_model=list[schemas.BookingResponse])
-def read_bookings(db: Session = Depends(get_db)):
+def read_bookings(db: Session = Depends(get_db),api_key: APIKey = Depends(app.auth.get_api_key)):
     db_booking = crud.get_bookings(db=db)
     if db_booking is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No Bookings in Database")
     return db_booking
 
 @router.post("/booking/delete_booking/{qr_code}")
-def delete_booking(qr_code: str, db: Session = Depends(get_db)):
+def delete_booking(qr_code: str, db: Session = Depends(get_db), api_key: APIKey = Depends(app.auth.get_api_key)):
     success = crud.remove_booking(db=db, qr_code=qr_code)
     if not success:
         raise HTTPException(status_code=404, detail="Booking not found")
     return {"detail": "Booking deleted successfully"}
 
 @router.post("/booking/checkin/{qr_code}")
-def checkin(qr_code: str, db: Session = Depends(get_db)):
+def checkin(qr_code: str, db: Session = Depends(get_db), api_key: APIKey = Depends(app.auth.get_api_key)):
     db_entry = crud.get_booking_by_qr(db=db, qr_code=qr_code)
     if not db_entry:
         return {
@@ -94,15 +94,15 @@ def get_config(api_key: APIKey = Depends(app.auth.get_api_key)):
     }
 
 @router.get("/config/planes")
-def get_planes():
+def get_planes(api_key: APIKey = Depends(app.auth.get_api_key)):
     return settings.planes
 
 @router.get("/config/airports")
-def get_airports():
+def get_airports(api_key: APIKey = Depends(app.auth.get_api_key)):
     return settings.airports
 
 @router.get("/config/get_timeframe_by_activity")
-def get_timeframe_by_activity(activity: str):
+def get_timeframe_by_activity(activity: str, api_key: APIKey = Depends(app.auth.get_api_key)):
     try:
         activity = settings.activities[activity]
     except:
@@ -112,18 +112,18 @@ def get_timeframe_by_activity(activity: str):
     return timeslots
 
 @router.get("/config/get_timeframe_by_offset")
-def get_timeframe_by_offset(offset: int):
+def get_timeframe_by_offset(offset: int, api_key: APIKey = Depends(app.auth.get_api_key)):
     timeslots = utillities.get_all_timeslots(offset)
     return timeslots
 
 @router.get("/config/reload")
-def reloadConfig():
+def reloadConfig(api_key: APIKey = Depends(app.auth.get_api_key)):
     global settings
     settings = reload_settings()
     return {"detail": "Settings reloaded successfully"}
 
 @router.post("/config/update-config", status_code=200)
-def update_setting(config: schemas.ConfigUpdate, response: Response):
+def update_setting(config: schemas.ConfigUpdate, response: Response, api_key: APIKey = Depends(app.auth.get_api_key)):
     global settings
     data = config.model_dump()
     try:
@@ -134,18 +134,18 @@ def update_setting(config: schemas.ConfigUpdate, response: Response):
         return
 
 @router.get("/state/booking/{terminal}")
-def getTerminalBookingState(terminal: str):
+def getTerminalBookingState(terminal: str, api_key: APIKey = Depends(app.auth.get_api_key)):
     state = terminalState[terminal]
     return state
 
 @router.get("/state/booking/{terminal}/set/{state}")
-def getTerminalBookingState(terminal: str, state: str):
+def setTerminalBookingState(terminal: str, state: str, api_key: APIKey = Depends(app.auth.get_api_key)):
     terminalState[terminal] = state
     state = terminalState[terminal]
     return state
 
 @router.get("/routemanagement/get")
-def get_current_and_next_routeinfo_by_activity(activity: str, db: Session = Depends(get_db)):
+def get_current_and_next_routeinfo_by_activity(activity: str, db: Session = Depends(get_db), api_key: APIKey = Depends(app.auth.get_api_key)):
 
     try:
         activitydir = settings.activities[activity]
@@ -196,7 +196,7 @@ def get_current_and_next_routeinfo_by_activity(activity: str, db: Session = Depe
     }
 
 @router.get("/routemanagement/getstr")
-def get_current_and_next_routeinfo_by_activity_str(activity: str, db: Session = Depends(get_db)):
+def get_current_and_next_routeinfo_by_activity_str(activity: str, db: Session = Depends(get_db), api_key: APIKey = Depends(app.auth.get_api_key)):
     try:
         activitydir = settings.activities[activity]
     except:
