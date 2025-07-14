@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from fastapi.security.api_key import APIKey
+from fastapi.security.api_key import APIKey, APIKeyHeader
 from sqlalchemy.orm import Session
 from app import crud, schemas, utillities
 from app.config import reload_settings, update_settings
@@ -248,3 +248,7 @@ def get_current_and_next_routeinfo_by_activity_str(activity: str, db: Session = 
             "name": name_next
         }
     }
+
+@router.get("/testauth")
+def testauth(key: str = Depends(APIKeyHeader(name="access_token"))):
+    return {"key": key}
