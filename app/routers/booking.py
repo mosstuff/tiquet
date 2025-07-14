@@ -248,7 +248,3 @@ def get_current_and_next_routeinfo_by_activity_str(activity: str, db: Session = 
             "name": name_next
         }
     }
-
-@router.get("/testauth")
-def testauth(key: str = Depends(APIKeyHeader(name="access_token"))):
-    return {"key": key}
