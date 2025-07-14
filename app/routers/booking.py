@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi.security.api_key import APIKey
 from sqlalchemy.orm import Session
 from app import crud, schemas, utillities
 from app.config import reload_settings, update_settings
 from app.dependencies import get_db
+import app.auth
 from datetime import datetime
 router = APIRouter()
 global settings
@@ -80,7 +82,7 @@ def checkin(qr_code: str, db: Session = Depends(get_db)):
         }
 
 @router.get("/config")
-def get_config():
+def get_config(api_key: APIKey = Depends(app.auth.get_api_key)):
 
     system_time = datetime.now(utillities.get_timezone()).strftime('%H:%M')
 
