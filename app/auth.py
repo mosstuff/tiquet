@@ -7,7 +7,7 @@ api_key_header = APIKeyHeader(name="access_token", auto_error=False)
 settings = reload_settings()
 
 async def get_api_key(api_key_header_key: str = Security(api_key_header)):
-    if api_key_header == settings.secret_key:
+    if api_key_header_key == settings.secret_key:
         return api_key_header_key
     else:
         raise HTTPException(
