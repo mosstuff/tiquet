@@ -134,7 +134,7 @@ def update_setting(config: schemas.ConfigUpdate, response: Response, api_key: AP
         return
 
 @router.get("/state/booking/{terminal}")
-def getTerminalBookingState(terminal: str, api_key: APIKey = Depends(app.auth.get_api_key)):
+def getTerminalBookingState(terminal: str):
     state = terminalState[terminal]
     return state
 
